@@ -1,3 +1,7 @@
+# Reason of creation this fork
+This fork was created due to original gem is not supported for long time. 
+Will be used fix issue with dependencies of mime-types gem.
+
 # CarrierWave Backgrounder
 
 [![Build Status](https://github.com/lardawge/carrierwave_backgrounder/actions/workflows/ruby-ci.yml/badge.svg)](https://github.com/lardawge/carrierwave_backgrounder/actions/workflows/ruby-ci.yml)
