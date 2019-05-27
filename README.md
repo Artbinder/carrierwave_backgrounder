@@ -1,6 +1,7 @@
 # Reason of creation this fork
 This fork was created due to original gem is not supported for long time. 
-Will be used fix issue with dependencies of mime-types gem.
+
+Will be used to fix issue with dependencies of mime-types gem.
 
 # CarrierWave Backgrounder
 
