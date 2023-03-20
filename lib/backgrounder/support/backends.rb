@@ -23,7 +23,13 @@ module CarrierWave
           private
 
           def enqueue_active_job(worker, *args)
-            worker.perform_later(*args.map(&:to_s))
+            # set_options = queue_options.slice(%i[wait wait_until queue priority])
+            # set_options = queue_options.select { |k, v| k.in?(%i[wait wait_until queue priority]) } # slice is 2.5+ Ruby or Rails 3..5.2.3
+            # worker.set(set_options).perform_later(*args.map(&:to_s))
+            # puts worker.methods
+
+            # worker.perform_later(*args.map(&:to_s)) # before
+            worker.set(queue_options).perform_later(*args.map(&:to_s)) # after
           end
 
           def enqueue_delayed_job(worker, *args)
