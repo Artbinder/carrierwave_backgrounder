@@ -34,9 +34,19 @@ module CarrierWave::Backgrounder
         let(:args) { ['FakeClass', 1, :image] }
 
         it 'invokes perform_later with string arguments' do
-          expect(MockWorker).to receive(:perform_later).with('FakeClass', '1', 'image')
+          expect(MockActiveJob).to receive(:perform_later).with('FakeClass', '1', 'image')
           mock_module.backend :active_job
-          mock_module.enqueue_for_backend(MockWorker, *args)
+          mock_module.enqueue_for_backend(MockActiveJob, *args)
+        end
+
+        context 'queue options configured' do
+          let(:queue_options) { { :queue => :awesome_queue } }
+
+          it 'uses configured queue' do
+            expect(MockActiveJob).to receive(:set).with(queue_options).and_return(MockActiveJob)
+            mock_module.backend :active_job, queue_options
+            mock_module.enqueue_for_backend(MockActiveJob, *args)
+          end
         end
       end
 

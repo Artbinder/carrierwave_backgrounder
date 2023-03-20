@@ -10,10 +10,10 @@ module CarrierWave
         module ClassMethods
           attr_reader :queue_options
 
-          def backend(queue_name=nil, args={})
+          def backend(backend_name=nil, args={})
             return @backend if @backend
             @queue_options = args
-            @backend = queue_name
+            @backend = backend_name
           end
 
           def enqueue_for_backend(worker, class_name, subject_id, mounted_as)
@@ -23,7 +23,7 @@ module CarrierWave
           private
 
           def enqueue_active_job(worker, *args)
-            worker.perform_later(*args.map(&:to_s))
+            worker.set(queue_options).perform_later(*args.map(&:to_s))
           end
 
           def enqueue_sidekiq(worker, *args)
