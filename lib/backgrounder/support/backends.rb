@@ -10,10 +10,10 @@ module CarrierWave
         module ClassMethods
           attr_reader :queue_options
 
-          def backend(queue_name=nil, args={})
+          def backend(backend_name=nil, args={})
             return @backend if @backend
             @queue_options = args
-            @backend = queue_name
+            @backend = backend_name
           end
 
           def enqueue_for_backend(worker, class_name, subject_id, mounted_as)
@@ -23,13 +23,7 @@ module CarrierWave
           private
 
           def enqueue_active_job(worker, *args)
-            # set_options = queue_options.slice(%i[wait wait_until queue priority])
-            # set_options = queue_options.select { |k, v| k.in?(%i[wait wait_until queue priority]) } # slice is 2.5+ Ruby or Rails 3..5.2.3
-            # worker.set(set_options).perform_later(*args.map(&:to_s))
-            # puts worker.methods
-
-            # worker.perform_later(*args.map(&:to_s)) # before
-            worker.set(queue_options).perform_later(*args.map(&:to_s)) # after
+            worker.set(queue_options).perform_later(*args.map(&:to_s))
           end
 
           def enqueue_delayed_job(worker, *args)

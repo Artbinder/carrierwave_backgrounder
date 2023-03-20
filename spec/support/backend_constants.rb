@@ -5,6 +5,17 @@ module GirlFriday
   end
 end
 
+module ActiveJob
+  class Mock
+    def self.set(options = {})
+      self
+    end
+
+    def self.perform_later(*args)
+    end
+  end
+end
+
 module Delayed
   class Job
     def self.column_names
