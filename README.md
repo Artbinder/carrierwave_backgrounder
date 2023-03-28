@@ -148,6 +148,9 @@ class MyActiveJobWorker < ActiveJob::Base
   include ::CarrierWave::Workers::ProcessAssetMixin
   # ... or include ::CarrierWave::Workers::StoreAssetMixin
 
+  queue_as :awesome_queue # will override .configure :queue option, if any
+  # queue_as { 'default' } # use this approach to force `default` queue over .configure :queue option
+
   after_perform do
     # your code here
   end
@@ -163,7 +166,14 @@ end
 Don't forget to set `active_job` as a backend in the config:
 ```ruby
 CarrierWave::Backgrounder.configure do |c|
-  c.backend :active_job, queue: :carrierwave
+  c.backend :active_job
+end
+```
+
+You can also use ActiveJob enqueue options (refer to `ActiveJob::Enqueuing#enqueue`) in global config:
+```ruby
+CarrierWave::Backgrounder.configure do |c|
+  c.backend :active_job, queue: :awesome_queue, wait: 5.minutes, wait_until: Date.tomorrow.midnight
 end
 ```
 

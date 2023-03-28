@@ -13,6 +13,10 @@ module ActiveJob
 
     def self.perform_later(*args)
     end
+
+    def self.queue_name
+      'default'
+    end
   end
 end
 

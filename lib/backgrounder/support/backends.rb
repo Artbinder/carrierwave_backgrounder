@@ -23,7 +23,11 @@ module CarrierWave
           private
 
           def enqueue_active_job(worker, *args)
-            worker.set(queue_options).perform_later(*args.map(&:to_s))
+            set_options = queue_options
+            is_queue_unset = worker.queue_name == 'default' || worker.queue_name.nil?
+            set_options[:queue] = is_queue_unset ? queue_options[:queue] : worker.queue_name
+
+            worker.set(set_options).perform_later(*args.map(&:to_s))
           end
 
           def enqueue_delayed_job(worker, *args)
