@@ -1,8 +1,7 @@
-# Reason of creation this fork
+# Reason of creation of this fork
 This fork was created due to original gem is not supported for long time.
 
-1. To fix issue with dependencies of mime-types gem.
-2. To fix issue with active_job queue options configuration.
+1. To allow queue configuration on the worker level.
 
 # CarrierWave Backgrounder
 
@@ -56,6 +55,13 @@ Run the generator which will create an initializer in config/initializers.
 rails g carrierwave_backgrounder:install
 ```
 
+You can use ActiveJob enqueue options (refer to `ActiveJob::Enqueuing#enqueue`) in global config:
+```ruby
+CarrierWave::Backgrounder.configure do |c|
+  c.backend :active_job, queue: :awesome_queue, priority: 10
+end
+```
+
 You can pass additional configuration options to Sidekiq:
 
 ```ruby
@@ -70,13 +76,6 @@ end
 :queues:
   - [carrierwave, 1]
   - default
-```
-
-You can also use ActiveJob enqueue options (refer to `ActiveJob::Enqueuing#enqueue`) in global config:
-```ruby
-CarrierWave::Backgrounder.configure do |c|
-  c.backend :active_job, queue: :awesome_queue, wait: 5.minutes, wait_until: Date.tomorrow.midnight
-end
 ```
 
 In your CarrierWave uploader file you will need to add a cache directory as well as change cache_storage to File:
@@ -157,7 +156,7 @@ process_in_background :avatar, MyParanoidWorker
 ```
 
 Then create a worker that subclasses carrierwave_backgrounder's worker.
-Each method, #store_in_background and #process_in_background has there own worker.
+Each method, #store_in_background and #process_in_background has their own worker.
 
 #### For Sidekiq
 `process_in_background` subclass `::CarrierWave::Workers::ProcessAsset`
@@ -178,6 +177,8 @@ end
 class MyParanoidWorker < ::CarrierWave::Workers::ProcessAsset
   # ...or subclass CarrierWave::Workers::StoreAsset if you're using store_in_background
 
+  sidekiq_options queue: :awesome_queue # To override .configure :queue option
+
   def error(job, exception)
     report_job_failure  # or whatever
   end
@@ -195,8 +196,17 @@ class User < ActiveRecord::Base
 end
 
 class MyActiveJobWorker < ::CarrierWave::Workers::ActiveJob::StoreAsset
-  queue_as :awesome_queue # will override .configure :queue option, if any
-  # queue_as { 'default' } # use this approach to force `default` queue over .configure :queue option
+  # It's possible to set the queue name per worker:
+  queue_as :awesome_queue # To override .configure :queue option
+  #
+  # ActiveJob allows to pass a block to `queue_as` method to take advantage of `self.arguments` for dynamically defined queue name:
+  # queue_as do
+  #   post = self.arguments.first
+  #   post.paid? ? :paid_feeds : :feeds
+  # end
+  #
+  # To force `default` queue over any :queue option set in global .configure, use a block:
+  # queue_as { 'default' }
 
   after_perform do
     # your code here

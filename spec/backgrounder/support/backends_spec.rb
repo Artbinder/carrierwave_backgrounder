@@ -41,12 +41,12 @@ module CarrierWave::Backgrounder
 
         describe 'queue name option' do
           #    config    worker      result
-          #      0         0         'default'
+          #      0         0        'default'
           #      1         0         config
           #      1         1         worker (must use a proc for 'default')
           #      0         1         worker
           context 'queue name configured globally' do
-            let(:queue_options) { { :queue => :awesome_queue } }
+            let(:queue_options) { { :queue => :global_queue } }
 
             it 'uses globally configured queue name' do
               expect(MockActiveJob).to receive(:set).with(queue_options).and_return(MockActiveJob)
@@ -56,9 +56,37 @@ module CarrierWave::Backgrounder
 
             context 'queue name configured in worker' do
               it 'uses worker-configured queue' do
-                allow(MockActiveJob).to receive(:queue_name).and_return(:worker_queue)
+                worker_queue = :worker_queue
+                allow(MockActiveJob).to receive(:queue_name).and_return(worker_queue)
 
-                expect(MockActiveJob).to receive(:set).with(:queue => :worker_queue).and_return(MockActiveJob)
+                expect(MockActiveJob).to receive(:set).with({ :queue => worker_queue }).and_return(MockActiveJob)
+                mock_module.backend :active_job, queue_options
+                mock_module.enqueue_for_backend(MockActiveJob, *args)
+              end
+
+              it 'uses worker-configured queue set as string' do
+                worker_queue_str = 'worker_queue'
+                allow(MockActiveJob).to receive(:queue_name).and_return(worker_queue_str)
+
+                expect(MockActiveJob).to receive(:set).with({ :queue => worker_queue_str }).and_return(MockActiveJob)
+                mock_module.backend :active_job, queue_options
+                mock_module.enqueue_for_backend(MockActiveJob, *args)
+              end
+
+              it 'uses worker-configured queue set as a proc' do
+                queue_name_proc = Proc.new { 'any_queue' }
+                allow(MockActiveJob).to receive(:queue_name).and_return(queue_name_proc)
+
+                expect(MockActiveJob).to receive(:set).with({ :queue => queue_name_proc }).and_return(MockActiveJob)
+                mock_module.backend :active_job, queue_options
+                mock_module.enqueue_for_backend(MockActiveJob, *args)
+              end
+
+              it 'ignores the `queue_as \'default\'` setting as string' do
+                default_string = 'default'
+                allow(MockActiveJob).to receive(:queue_name).and_return(default_string)
+
+                expect(MockActiveJob).to receive(:set).with(queue_options).and_return(MockActiveJob)
                 mock_module.backend :active_job, queue_options
                 mock_module.enqueue_for_backend(MockActiveJob, *args)
               end
@@ -67,7 +95,7 @@ module CarrierWave::Backgrounder
                 default_proc = Proc.new { 'default' }
                 allow(MockActiveJob).to receive(:queue_name).and_return(default_proc)
 
-                expect(MockActiveJob).to receive(:set).with(:queue => default_proc).and_return(MockActiveJob)
+                expect(MockActiveJob).to receive(:set).with({ :queue => default_proc }).and_return(MockActiveJob)
                 mock_module.backend :active_job, queue_options
                 mock_module.enqueue_for_backend(MockActiveJob, *args)
               end
@@ -78,7 +106,7 @@ module CarrierWave::Backgrounder
             it 'uses configured queue' do
               allow(MockActiveJob).to receive(:queue_name).and_return(:awesome_queue)
 
-              expect(MockActiveJob).to receive(:set).with(:queue => :awesome_queue).and_return(MockActiveJob)
+              expect(MockActiveJob).to receive(:set).with({ :queue => :awesome_queue }).and_return(MockActiveJob)
               mock_module.backend :active_job
               mock_module.enqueue_for_backend(MockActiveJob, *args)
             end
@@ -106,7 +134,7 @@ module CarrierWave::Backgrounder
           mock_module.enqueue_for_backend(MockSidekiqWorker, *args)
         end
 
-        it 'does not override queue name if set it worker' do
+        it 'does not override queue name if set in worker' do
           expect(MockNamedSidekiqWorker).to receive(:client_push).with({ 'class' => MockNamedSidekiqWorker,
                                                                     'retry' => false,
                                                                     'timeout' => 60,

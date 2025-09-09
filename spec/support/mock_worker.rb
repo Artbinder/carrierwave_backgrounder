@@ -23,4 +23,15 @@ class MockNamedSidekiqWorker < MockWorker
   sidekiq_options queue: :even_better_name
 end
 
-class MockActiveJob < ActiveJob::Mock; end
+class MockActiveJob
+  def self.set(options = {})
+    self
+  end
+
+  def self.perform_later(*args)
+  end
+
+  def self.queue_name
+    'default'
+  end
+end
