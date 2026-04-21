@@ -1,3 +1,5 @@
+# THIS FORK IS [NO LONGER NEEDED](https://github.com/lardawge/carrierwave_backgrounder/pull/335) SINCE THE ORIGINAL GEM ADOPTED OUR CHANGES
+
 # Reason of creation this fork
 This fork was created due to original gem is not supported for long time. 
 
